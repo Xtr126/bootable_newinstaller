@@ -3,8 +3,6 @@
 # By Chih-Wei Huang <cwhuang@linux.org.tw>
 # and Thorsten Glaser <tg@mirbsd.org>
 #
-# Last updated 2018/01/26
-#
 # License: GNU Public License
 # We explicitely grant the right to use the scripts
 # with Android-x86 project.
@@ -109,10 +107,10 @@ check_root()
 	elif [ -e /mnt/$SRC/system.img ]; then
 		remount_rw
 		mount -o loop,noatime /mnt/$SRC/system.img android
-	elif [ -d /mnt/$SRC/system ]; then
+	elif [ -s /mnt/$SRC/system/default.prop ]; then
 		remount_rw
 		mount --bind /mnt/$SRC/system android
-	elif [ -z "$SRC" -a -e /mnt/default.prop ]; then
+	elif [ -z "$SRC" -a -s /mnt/default.prop ]; then
 		mount --bind /mnt android
 	else
 		return 1
@@ -134,6 +132,7 @@ debug_shell()
 	if [ -x system/bin/sh ]; then
 		echo Running MirBSD Korn Shell...
 		USER="($1)" system/bin/sh -l 2>&1
+		[ $? -ne 0 ] && /bin/sh 2>&1
 	else
 		echo Running busybox ash...
 		busybox sh 2>&1
