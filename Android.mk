@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+BUILD_TOP := $(shell pwd)
 
 ifneq ($(filter x86%,$(TARGET_ARCH)),)
 LOCAL_PATH := $(call my-dir)
@@ -89,18 +90,19 @@ ifeq ($(BOARD_SLOT_AB_ENABLE),true)
 BUILT_IMG += $(PRODUCT_OUT)/recovery.img
 endif
 
+# Grab branch names
+KRNL := $(shell cd $(BUILD_TOP)/kernel ; git name-rev --name-only HEAD | cut -d '/' -f3)
+MSA := $(shell cd $(BUILD_TOP)/external/mesa ; git name-rev --name-only HEAD | cut -d '/' -f3)
+DG := $(shell cd $(BUILD_TOP)/external/drm_gralloc ; git name-rev --name-only HEAD | cut -d '/' -f3)
+DHW := $(shell cd $(BUILD_TOP)/external/drm_hwcomposer ; git name-rev --name-only HEAD | cut -d '/' -f3)
+LD := $(shell cd $(BUILD_TOP)/external/libdrm ; git name-rev --name-only HEAD | cut -d '/' -f3)
+MG := $(shell cd $(BUILD_TOP)/external/minigbm ; git name-rev --name-only HEAD | cut -d '/' -f3)
+FW := $(shell cd $(BUILD_TOP)/device/generic/firmware ; git name-rev --name-only HEAD | cut -d '/' -f3)
+DGC := $(shell cd $(BUILD_TOP)/device/generic/common ; git name-rev --name-only HEAD | cut -d '/' -f3)
+
 GENISOIMG := $(if $(shell which xorriso 2> /dev/null),xorriso -as mkisofs,genisoimage)
 
-BRANCH := $(shell cd $(TOP)/kernel ; git name-rev --name-only HEAD | cut -d '/' -f3)
-MESAB := $(shell cd $(TOP)/external/mesa ; git name-rev --name-only HEAD | cut -d '/' -f3)
-
-DRMGRALLOC := $(shell cd $(TOP)/external/drm_gralloc ; git name-rev --name-only HEAD | cut -d '/' -f3)
-DRMHWCOMPOSER := $(shell cd $(TOP)/external/drm_hwcomposer ; git name-rev --name-only HEAD | cut -d '/' -f3)
-LIBDRM := $(shell cd $(TOP)/external/libdrm ; git name-rev --name-only HEAD | cut -d '/' -f3)
-
-FWB := $(shell cd $(TOP)/device/generic/firmware ; git name-rev --name-only HEAD | cut -d '/' -f3)
-
-ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(BRANCH)_m-$(MESAB)_ld-$(LIBDRM)_dg-$(DRMGRALLOC)_dh-$(DRMHWCOMPOSER).iso
+ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(KRNL)_m-$(MSA)_dgc-$(DGC)_ld-$(LD)_dg-$(DG)_dh-$(DHW)_mg-$(MG).iso
 $(ISO_IMAGE): $(boot_dir) $(BUILT_IMG)
 	@echo ----- Making iso image ------
 	$(hide) sed -i "s|\(Installation CD\)\(.*\)|\1 $(VER)|; s|CMDLINE|$(BOARD_KERNEL_CMDLINE)|" $</isolinux/isolinux.cfg
