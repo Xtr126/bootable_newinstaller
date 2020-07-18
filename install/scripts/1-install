@@ -254,10 +254,16 @@ create_menulst()
 	[ -n "$VESA" ] && vga=" vga=788 modeset=0"
 	echo -e "${GRUB_OPTIONS:-default=0\ntimeout=6\nsplashimage=/grub/android-x86.xpm.gz\n}root (hd0,$1)\n" > $menulst
 
-	create_entry "$OS_TITLE $VER" quiet $cmdline androidboot.hardware=android_x86_64
+	create_entry "$OS_TITLE $VER" quiet $cmdline
 	create_entry "$OS_TITLE $VER (Legacy modprobe mode)" $cmdline androidboot.hardware=android_x86_64 AUTO_LOAD=old
-	create_entry "$OS_TITLE $VER (Debug mode)" $cmdline DEBUG=2 androidboot.hardware=android_x86_64
-	create_entry "$OS_TITLE $VER (Debug nomodeset)" nomodeset $cmdline DEBUG=2 androidboot.hardware=android_x86_64
+	create_entry "$OS_TITLE $VER (Debug mode)" $cmdline DEBUG=2
+	create_entry "$OS_TITLE $VER (Debug mode) gralloc.gbm" $cmdline DEBUG=2 GRALLOC=gbm
+	create_entry "$OS_TITLE $VER (Debug mode) drmfb-composer gralloc.gbm" $cmdline DEBUG=2 HWC=drmfb GRALLOC=gbm
+	create_entry "$OS_TITLE $VER (Debug mode) hwcomposer.drm gralloc.gbm" $cmdline DEBUG=2 HWC=drm GRALLOC=gbm
+	create_entry "$OS_TITLE $VER (Debug mode) gralloc.minigbm" DEBUG=2 GRALLOC=minigbm
+	create_entry "$OS_TITLE $VER (Debug mode) hwcomposer.drm_minigbm gralloc.minigbm" DEBUG=2 HWC=drm_minigbm GRALLOC=minigbm
+	create_entry "$OS_TITLE $VER (Debug mode) hwcomposer.intel gralloc.intel" DEBUG=2 HWC=intel GRALLOC=intel
+	create_entry "$OS_TITLE $VER (Debug nomodeset)" nomodeset $cmdline DEBUG=2
 	create_entry "$OS_TITLE $VER (Debug video=LVDS-1:d)" video=LVDS-1:d $cmdline DEBUG=2
 }
 
@@ -354,6 +360,9 @@ try_upgrade()
 		prev=hd/$choice
 		if [ -d "$prev" ]; then
 			mv $prev $1
+			for d in `find hd -type l -maxdepth 1`; do
+				[ "`readlink $d`" = "$choice" ] && ln -sf `basename $1` $d
+			done
 			rm -rf $1/data/dalvik-cache/* $1/data/system/wpa_supplicant
 			[ -s $1/data/misc/wifi/wpa_supplicant.conf ] && sed -i 's/\(ctrl_interface=\)\(.*\)/\1wlan0/' $1/data/misc/wifi/wpa_supplicant.conf
 		fi
@@ -523,6 +532,8 @@ install_to()
 		fi
 	fi
 
+	try_upgrade hd/$asrc
+
 	! test -f hd/$asrc/system.img -o -d hd/$asrc/system
 	set_answer_if_auto $?
 	adialog --title " Question " --defaultno --yesno \
@@ -537,7 +548,7 @@ install_to()
 	for s in `du -sk $files | awk '{print $1}'`; do
 		size=$(($size+$s))
 	done
-	try_upgrade hd/$asrc
+
 	mkdir -p hd/$asrc
 	cd hd/$asrc
 	rm -rf system*

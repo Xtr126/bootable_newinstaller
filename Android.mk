@@ -101,6 +101,7 @@ LIBDRM := $(shell cd $(TOP)/external/libdrm ; git name-rev --name-only HEAD | cu
 FWB := $(shell cd $(TOP)/device/generic/firmware ; git name-rev --name-only HEAD | cut -d '/' -f3)
 
 ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(BRANCH)_m-$(MESAB)_ld-$(LIBDRM)_dg-$(DRMGRALLOC)_dh-$(DRMHWCOMPOSER).iso
+ISOHYBRID := LD_LIBRARY_PATH=$(LOCAL_PATH)/install/lib external/syslinux/bios/utils/isohybrid
 $(ISO_IMAGE): $(boot_dir) $(BUILT_IMG)
 	@echo ----- Making iso image ------
 	$(hide) sed -i "s|\(Installation CD\)\(.*\)|\1 $(VER)|; s|CMDLINE|$(BOARD_KERNEL_CMDLINE)|" $</isolinux/isolinux.cfg
@@ -109,7 +110,7 @@ $(ISO_IMAGE): $(boot_dir) $(BUILT_IMG)
 	$(GENISOIMG) -vJURT -b isolinux/isolinux.bin -c isolinux/boot.cat \
 		-no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot \
 		-input-charset utf-8 -V "$(if $(RELEASE_OS_TITLE),$(RELEASE_OS_TITLE),Android-x86) $(VER) ($(TARGET_ARCH))" -o $@ $^
-	$(hide) isohybrid --uefi $@ || echo -e "isohybrid not found.\nInstall syslinux 4.0 or higher if you want to build a usb bootable iso."
+	$(hide) $(ISOHYBRID) --uefi $@
 	
 	@echo -e ${CL_CYN}""${CL_CYN}
 	@echo -e ${CL_CYN}"      ___           ___                   ___           ___      "${CL_CYN}
