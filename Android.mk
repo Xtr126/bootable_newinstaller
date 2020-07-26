@@ -126,7 +126,7 @@ endif
 
 GENISOIMG := $(if $(shell which xorriso 2> /dev/null),xorriso -as mkisofs,genisoimage)
 
-ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(KRNL)_m-$(MSA)_dgc-$(DGC)_ld-$(LD)_dg-$(DG)_dh-$(DHW)_mg-$(MG)$(GMS)$(FDR)$(FOS)$(IPTS).iso
+ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(KRNL)_m-$(MSA)_dgc-$(DGC)$(GMS)$(FDR)$(FOS)$(IPTS).iso
 ISOHYBRID := LD_LIBRARY_PATH=$(LOCAL_PATH)/install/lib external/syslinux/bios/utils/isohybrid
 $(ISO_IMAGE): $(boot_dir) $(BUILT_IMG)
 	@echo ----- Making iso image ------
