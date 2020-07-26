@@ -100,9 +100,33 @@ MG := $(shell cd $(BUILD_TOP)/external/minigbm ; git name-rev --name-only HEAD |
 FW := $(shell cd $(BUILD_TOP)/device/generic/firmware ; git name-rev --name-only HEAD | cut -d '/' -f3)
 DGC := $(shell cd $(BUILD_TOP)/device/generic/common ; git name-rev --name-only HEAD | cut -d '/' -f3)
 
+ifeq ($(USE_GMS),true)
+GMS := "_gms"
+else
+GMS := ""
+endif
+
+ifeq ($(USE_FDROID),true)
+FDR := "_fdroid"
+else
+FDR := ""
+endif
+
+ifeq ($(USE_FOSS),true)
+FOS := "_foss"
+else
+FOS := ""
+endif
+
+ifeq ($(IPTS_DRIVERS),true)
+IPTS := "_ipts"
+else
+IPTS := ""
+endif
+
 GENISOIMG := $(if $(shell which xorriso 2> /dev/null),xorriso -as mkisofs,genisoimage)
 
-ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(KRNL)_m-$(MSA)_dgc-$(DGC)_ld-$(LD)_dg-$(DG)_dh-$(DHW)_mg-$(MG).iso
+ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(KRNL)_m-$(MSA)_dgc-$(DGC)_ld-$(LD)_dg-$(DG)_dh-$(DHW)_mg-$(MG)$(GMS)$(FDR)$(FOS)$(IPTS).iso
 ISOHYBRID := LD_LIBRARY_PATH=$(LOCAL_PATH)/install/lib external/syslinux/bios/utils/isohybrid
 $(ISO_IMAGE): $(boot_dir) $(BUILT_IMG)
 	@echo ----- Making iso image ------
