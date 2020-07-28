@@ -124,6 +124,12 @@ else
 IPTS := ""
 endif
 
+ifeq ($(IPTS_PATCHES),true)
+IPTS := "_ipts"
+else
+IPTS := ""
+endif
+
 GENISOIMG := $(if $(shell which xorriso 2> /dev/null),xorriso -as mkisofs,genisoimage)
 
 ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(KRNL)_m-$(MSA)_dgc-$(DGC)$(GMS)$(FDR)$(FOS)$(IPTS).iso
