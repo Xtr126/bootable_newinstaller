@@ -551,6 +551,7 @@ install_to()
 
 	mkdir -p hd/$asrc
 	cd hd/$asrc
+	test -e "/mnt/$SRC/gearlock" && cp "/mnt/$SRC/gearlock" . 
 	rm -rf system*
 	( ( cd /; find $files | $CPIO -H newc -o ) | pv -ns ${size}k | ( $CPIO -iud > /dev/null; echo $? > /tmp/result )) 2>&1 \
 		| progress_bar "Installing $OS_TITLE to $1" "Expect to write $size KB..."
