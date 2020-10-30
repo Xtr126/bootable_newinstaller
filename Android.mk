@@ -130,9 +130,17 @@ else
 IPTS := ""
 endif
 
+ifeq ($(NATIVEBRIDGE_ARM_ABI),true)
+ARMEMU := "_armemu"
+else ifeq ($(NATIVEBRIDGE_ARM64_ABI),true)
+ARMEMU := "_arm64emu"
+else
+ARMEMU := ""
+endif
+
 GENISOIMG := $(if $(shell which xorriso 2> /dev/null),xorriso -as mkisofs,genisoimage)
 
-ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(KRNL)_m-$(MSA)_dgc-$(DGC)$(GMS)$(FDR)$(FOS)$(IPTS).iso
+ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERSION)-$(shell date +%H%M)_$(TARGET_ARCH)_k-$(KRNL)_m-$(MSA)_dgc-$(DGC)$(GMS)$(FDR)$(FOS)$(IPTS)$(ARMEMU).iso
 ISOHYBRID := LD_LIBRARY_PATH=$(LOCAL_PATH)/install/lib external/syslinux/bios/utils/isohybrid
 $(ISO_IMAGE): $(boot_dir) $(BUILT_IMG)
 	@echo ----- Making iso image ------
