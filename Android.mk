@@ -130,12 +130,21 @@ else
 IPTS := ""
 endif
 
+ARMEMU := ""
 ifeq ($(NATIVEBRIDGE_ARM_ABI),true)
 ARMEMU := "_armemu"
-else ifeq ($(NATIVEBRIDGE_ARM64_ABI),true)
+else
+ARMEMU := $(ARMEMU)
+endif
+ifeq ($(NATIVEBRIDGE_ARM64_ABI),true)
 ARMEMU := "_arm64emu"
 else
-ARMEMU := ""
+ARMEMU := $(ARMEMU)
+endif
+ifeq ($(HOUDINI_PREINSTALL),intel)
+ARMEMU := "_intelhd"
+else
+ARMEMU := $(ARMEMU)
 endif
 
 GENISOIMG := $(if $(shell which xorriso 2> /dev/null),xorriso -as mkisofs,genisoimage)
