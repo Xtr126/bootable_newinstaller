@@ -221,7 +221,7 @@ fi
 
 load_modules
 mount_data
-mount_sdcard
+mount_sdcard; hook_gearinit
 setup_tslib
 setup_dpi
 post_detect
