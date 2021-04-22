@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+BUILD_TOP := $(shell pwd)
 
 ifneq ($(filter x86%,$(TARGET_ARCH)),)
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
-
+RELEASE_OS_TITLE := Bliss-OS
 include $(CLEAR_VARS)
 LOCAL_IS_HOST_MODULE := true
 LOCAL_SRC_FILES := rpm/qemu-android
@@ -26,6 +27,7 @@ LOCAL_POST_INSTALL_CMD := $(hide) sed -i "s|CMDLINE|$(BOARD_KERNEL_CMDLINE)|" $(
 include $(BUILD_PREBUILT)
 
 VER ?= $$(date +"%F")
+BLISS_VERS := $(BLISS_VERSION)-$(shell date +%H%M)
 
 # use squashfs for iso, unless explictly disabled
 ifneq ($(USE_SQUASHFS),0)
@@ -35,6 +37,9 @@ define build-squashfs-target
 	$(hide) $(MKSQUASHFS) $(1) $(2) -noappend -comp gzip
 endef
 endif
+
+# Bliss Build Colors
+include $(LOCAL_PATH)/bliss/bliss_colors.mk
 
 initrd_dir := $(LOCAL_PATH)/initrd
 initrd_bin := \
@@ -79,11 +84,25 @@ $(boot_dir): $(shell find $(LOCAL_PATH)/boot -type f | sort -r) $(isolinux_files
 	mkdosfs -n EFI $$img; mmd -i $$img ::boot; \
 	mcopy -si $$img $@/efi ::; mdel -i $$img ::efi/boot/*.cfg
 
-BUILT_IMG := $(addprefix $(PRODUCT_OUT)/,ramdisk.img initrd.img install.img) $(systemimg)
+BUILT_IMG := $(addprefix $(PRODUCT_OUT)/,ramdisk.img initrd.img install.img Androidx86-Installv26.0003.exe) $(systemimg)
 BUILT_IMG += $(if $(TARGET_PREBUILT_KERNEL),$(TARGET_PREBUILT_KERNEL),$(PRODUCT_OUT)/kernel)
 
+ifeq ($(BOARD_SLOT_AB_ENABLE),true)
+BUILT_IMG += $(PRODUCT_OUT)/recovery.img
+endif
+
+# Grab branch names
+KRNL := $(shell cd $(BUILD_TOP)/kernel ; git name-rev --name-only HEAD | cut -d '/' -f3)
+MSA := $(shell cd $(BUILD_TOP)/external/mesa ; git name-rev --name-only HEAD | cut -d '/' -f3)
+DG := $(shell cd $(BUILD_TOP)/external/drm_gralloc ; git name-rev --name-only HEAD | cut -d '/' -f3)
+DHW := $(shell cd $(BUILD_TOP)/external/drm_hwcomposer ; git name-rev --name-only HEAD | cut -d '/' -f3)
+LD := $(shell cd $(BUILD_TOP)/external/libdrm ; git name-rev --name-only HEAD | cut -d '/' -f3)
+MG := $(shell cd $(BUILD_TOP)/external/minigbm ; git name-rev --name-only HEAD | cut -d '/' -f3)
+FW := $(shell cd $(BUILD_TOP)/device/generic/firmware ; git name-rev --name-only HEAD | cut -d '/' -f3)
+DGC := $(shell cd $(BUILD_TOP)/device/generic/common ; git name-rev --name-only HEAD | cut -d '/' -f3)
+
 GENISOIMG := $(if $(shell which xorriso 2> /dev/null),xorriso -as mkisofs,genisoimage)
-ISO_IMAGE := $(PRODUCT_OUT)/$(TARGET_PRODUCT).iso
+ISO_IMAGE := $(PRODUCT_OUT)/$(BLISS_VERS)_$(TARGET_ARCH)_k-$(KRNL)_m-$(MSA)_dgc-$(DGC)_ld-$(LD)_dg-$(DG)_dh-$(DHW)_mg-$(MG).iso
 $(ISO_IMAGE): $(boot_dir) $(BUILT_IMG)
 	@echo ----- Making iso image ------
 	$(hide) sed -i "s|\(Installation CD\)\(.*\)|\1 $(VER)|; s|CMDLINE|$(BOARD_KERNEL_CMDLINE)|" $</isolinux/isolinux.cfg
@@ -93,6 +112,32 @@ $(ISO_IMAGE): $(boot_dir) $(BUILT_IMG)
 		-no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot \
 		-input-charset utf-8 -V "$(if $(RELEASE_OS_TITLE),$(RELEASE_OS_TITLE),Android-x86) $(VER) ($(TARGET_ARCH))" -o $@ $^
 	$(hide) external/syslinux/bios/utils/isohybrid.pl $@
+	
+	@echo -e ${CL_CYN}""${CL_CYN}
+	@echo -e ${CL_CYN}"      ___           ___                   ___           ___      "${CL_CYN}
+	@echo -e ${CL_CYN}"     /\  \         /\__\      ___        /\  \         /\  \     "${CL_CYN}
+	@echo -e ${CL_CYN}"    /::\  \       /:/  /     /\  \      /::\  \       /::\  \    "${CL_CYN}
+	@echo -e ${CL_CYN}"   /:/\:\  \     /:/  /      \:\  \    /:/\ \  \     /:/\ \  \   "${CL_CYN}
+	@echo -e ${CL_CYN}"  /::\~\:\__\   /:/  /       /::\__\  _\:\~\ \  \   _\:\~\ \  \  "${CL_CYN}
+	@echo -e ${CL_CYN}" /:/\:\ \:\__\ /:/__/     __/:/\/__/ /\ \:\ \ \__\ /\ \:\ \ \__\ "${CL_CYN}
+	@echo -e ${CL_CYN}" \:\~\:\/:/  / \:\  \    /\/:/  /    \:\ \:\ \/__/ \:\ \:\ \/__/ "${CL_CYN}
+	@echo -e ${CL_CYN}"  \:\ \::/  /   \:\  \   \::/__/      \:\ \:\__\    \:\ \:\__\   "${CL_CYN}
+	@echo -e ${CL_CYN}"   \:\/:/  /     \:\  \   \:\__\       \:\/:/  /     \:\/:/  /   "${CL_CYN}
+	@echo -e ${CL_CYN}"    \::/__/       \:\__\   \/__/        \::/  /       \::/  /    "${CL_CYN}
+	@echo -e ${CL_CYN}"     ~~            \/__/                 \/__/         \/__/     "${CL_CYN}
+	@echo -e ${CL_CYN}""${CL_CYN}
+	@echo -e ${CL_CYN}"===========-Bliss-x86 Package Complete-==========="${CL_RST}
+	@echo -e ${CL_CYN}"Zip: "${CL_CYN} $(ISO_IMAGE)${CL_RST}
+	@echo -e ${CL_CYN}"Size:"${CL_CYN}" `ls -lah $(ISO_IMAGE) | cut -d ' ' -f 5`"${CL_RST}
+	@echo -e ${CL_CYN}"=================================================="${CL_RST}
+	@echo -e ${CL_CYN}"        Have A Truly Blissful Experience"          ${CL_RST}
+	@echo -e ${CL_CYN}"=================================================="${CL_RST}
+	@echo -e ""
+
+	# Generate Bliss Changelog
+	$(hide) ./vendor/bliss/tools/changelog
+	$(hide) mv $(PRODUCT_OUT)/Changelog.txt $(PRODUCT_OUT)/Changelog-$(BLISS_VERS).txt
+	
 	@echo -e "\n\n$@ is built successfully.\n\n"
 
 rpm: $(wildcard $(LOCAL_PATH)/rpm/*) $(BUILT_IMG)
