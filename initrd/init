@@ -25,6 +25,11 @@ else
 fi
 exec 2>> $LOG
 
+chmod 755 /sbin/mount.ntfs-3g
+chmod 755 /sbin/grub
+chmod 755 /sbin/mkntfs
+chmod 755 /sbin/efibootmgr
+
 # early boot
 if test x"$HAS_CTTY" != x"Yes"; then
 	# initialise /proc and /sys
