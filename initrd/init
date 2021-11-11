@@ -91,11 +91,19 @@ check_root()
 	else
 		dev=$1
 	fi
+	if [ -n "$DEBUG" ]; then
+		echo -e "Trying device:"
+		echo -e "$dev"
+	fi
 	try_mount ro $dev /mnt || return 1
 	if [ -n "$iso" -a -e /mnt/$iso ]; then
 		mount --move /mnt /iso
 		mkdir /mnt/iso
 		mount -o loop /iso/$iso /mnt/iso
+	fi
+	if [ -n "$DEBUG" ]; then
+		echo -e "Looking for system:"
+		echo -e "/mnt/$SRC"
 	fi
 	if [ -e /mnt/$SRC/system.sfs ]; then
 		mount -o loop,noatime /mnt/$SRC/system.sfs android
@@ -112,6 +120,10 @@ check_root()
 	elif [ -z "$SRC" -a -s /mnt/default.prop ]; then
 		mount --bind /mnt android
 	else
+		if [ -n "$DEBUG" ]; then
+			echo -e "System not found."
+			echo -e "/mnt/$SRC"
+		fi
 		return 1
 	fi
 	echo " found at $1"
