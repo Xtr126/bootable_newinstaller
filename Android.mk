@@ -48,6 +48,7 @@ $(INITRD_RAMDISK): $(initrd_bin) $(systemimg) $(TARGET_INITRD_SCRIPTS) | $(ACP) 
 	mkdir -p $(addprefix $(TARGET_INITRD_OUT)/,android apex hd iso lib mnt proc scripts sfs sys tmp)
 	$(if $(TARGET_INITRD_SCRIPTS),$(ACP) -p $(TARGET_INITRD_SCRIPTS) $(TARGET_INITRD_OUT)/scripts)
 	ln -s /bin/ld-linux.so.2 $(TARGET_INITRD_OUT)/lib
+	cp -rp "$(TARGET_OUT_INTERMEDIATES)/kernel/drivers/input/keyboard/atkbd.ko" "$(TARGET_INITRD_OUT)"
 	echo "VER=$(VER)" > $(TARGET_INITRD_OUT)/scripts/00-ver
 	$(if $(RELEASE_OS_TITLE),echo "OS_TITLE=$(RELEASE_OS_TITLE)" >> $(TARGET_INITRD_OUT)/scripts/00-ver)
 	$(if $(INSTALL_PREFIX),echo "INSTALL_PREFIX=$(INSTALL_PREFIX)" >> $(TARGET_INITRD_OUT)/scripts/00-ver)

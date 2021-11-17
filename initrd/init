@@ -150,6 +150,12 @@ debug_shell()
 	fi
 }
 
+## Start early debug shell
+if test -n "$EARLY_DEBUG"; then
+	modprobe /atkbd.ko
+	debug_shell
+fi
+
 echo -n Detecting Android-x86...
 
 [ -z "$SRC" -a -n "$BOOT_IMAGE" ] && SRC=`dirname $BOOT_IMAGE`
@@ -203,7 +209,7 @@ if [ -n "$INSTALL" -o -n "$DEBUG" ]; then
 	auto_detect &
 fi
 
-if [ 0$DEBUG -gt 0 ]; then
+if [ 0$DEBUG -gt 0 ] && [ -z "$EARLY_DEBUG" ]; then
 	echo -e "\nType 'exit' to continue booting...\n"
 	debug_shell debug-found
 fi
