@@ -221,7 +221,7 @@ done
 
 # ensure keyboard driver is loaded
 if [ -n "$INSTALL" -o -n "$DEBUG" ]; then
-	busybox modprobe -a atkbd hid-apple
+	busybox modprobe -a atkbd hid-apple crc32c-intel vmd
 	auto_detect &
 fi
 
